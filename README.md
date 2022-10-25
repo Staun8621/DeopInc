@@ -1,8 +1,5 @@
 AZ-104 | Chapter 3 - Arm Template 1/2
-    
-
-
-
+ 
 To understand IaC and Azure deployment, the first will be ARM template write up. 
 
 
