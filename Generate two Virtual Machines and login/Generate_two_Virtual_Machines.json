@@ -1,0 +1,329 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "resources": [
+
+    {
+        "name": "[toLower('ubuntuVM11Mehmetstorage')]",
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "2021-04-01",
+        "location": "[resourceGroup().location]",
+        "tags": {
+            "displayName": "ubuntuVM11Mehmet Storage Account"
+        },
+        "sku": {
+            "name": "Standard_LRS"
+        },
+        "kind": "Storage"
+    },
+    {
+        "name": "ubuntuVM11Mehmet-PublicIP",
+        "type": "Microsoft.Network/publicIPAddresses",
+        "apiVersion": "2020-11-01",
+        "location": "[resourceGroup().location]",
+        "tags": {
+            "displayName": "PublicIPAddress"
+        },
+        "properties": {
+            "publicIPAllocationMethod": "Dynamic",
+            "dnsSettings": {
+                "domainNameLabel": "[toLower('ubuntuVM11Mehmet')]"
+            }
+        }
+    },
+    {
+        "name": "ubuntuVM11Mehmet-nsg",
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "apiVersion": "2020-11-01",
+        "location": "[resourceGroup().location]",
+        "properties": {
+            "securityRules": [
+                {
+                    "name": "nsgRule1",
+                    "properties": {
+                        "description": "description",
+                        "protocol": "Tcp",
+                        "sourcePortRange": "*",
+                        "destinationPortRange": "22",
+                        "sourceAddressPrefix": "*",
+                        "destinationAddressPrefix": "*",
+                        "access": "Allow",
+                        "priority": 100,
+                        "direction": "Inbound"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "name": "ubuntuVM11Mehmet-VirtualNetwork",
+        "type": "Microsoft.Network/virtualNetworks",
+        "apiVersion": "2020-11-01",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Network/networkSecurityGroups', 'ubuntuVM11Mehmet-nsg')]"
+        ],
+        "tags": {
+            "displayName": "ubuntuVM11Mehmet-VirtualNetwork"
+        },
+        "properties": {
+            "addressSpace": {
+                "addressPrefixes": [
+                    "10.0.0.0/16"
+                ]
+            },
+            "subnets": [
+                {
+                    "name": "ubuntuVM11Mehmet-VirtualNetwork-Subnet",
+                    "properties": {
+                        "addressPrefix": "10.0.0.0/24",
+                        "networkSecurityGroup": {
+                            "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'ubuntuVM11Mehmet-nsg')]"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "name": "ubuntuVM11Mehmet-NetworkInterface",
+        "type": "Microsoft.Network/networkInterfaces",
+        "apiVersion": "2020-11-01",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Network/publicIPAddresses', 'ubuntuVM11Mehmet-PublicIP')]",
+            "[resourceId('Microsoft.Network/virtualNetworks', 'ubuntuVM11Mehmet-VirtualNetwork')]"
+        ],
+        "tags": {
+            "displayName": "ubuntuVM11Mehmet-NetworkInterface"
+        },
+        "properties": {
+            "ipConfigurations": [
+                {
+                    "name": "ipConfig1",
+                    "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "publicIPAddress": {
+                            "id": "[resourceId('Microsoft.Network/publicIPAddresses', 'ubuntuVM11Mehmet-PublicIP')]"
+                        },
+                        "subnet": {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'ubuntuVM11Mehmet-VirtualNetwork', 'ubuntuVM11Mehmet-VirtualNetwork-Subnet')]"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "name": "ubuntuVM11Mehmet",
+        "type": "Microsoft.Compute/virtualMachines",
+        "apiVersion": "2021-03-01",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Network/networkInterfaces', 'ubuntuVM11Mehmet-NetworkInterface')]"
+        ],
+        "tags": {
+            "displayName": "ubuntuVM11Mehmet"
+        },
+        "properties": {
+            "hardwareProfile": {
+                "vmSize": "Standard_A2_v2"
+            },
+            "osProfile": {
+                "computerName": "ubuntuVM11Mehmet",
+                "adminUsername": "adminUsername",
+                "adminPassword": "24HXsU5b%h5@"
+            },
+            "storageProfile": {
+                "imageReference": {
+                    "publisher": "Canonical",
+                    "offer": "UbuntuServer",
+                    "sku": "16.04-LTS",
+                    "version": "latest"
+                },
+                "osDisk": {
+                    "name": "ubuntuVM11Mehmet-OSDisk",
+                    "caching": "ReadWrite",
+                    "createOption": "FromImage"
+                }
+            },
+            "networkProfile": {
+                "networkInterfaces": [
+                    {
+                        "id": "[resourceId('Microsoft.Network/networkInterfaces', 'ubuntuVM11Mehmet-NetworkInterface')]"
+                    }
+                ]
+            },
+            "diagnosticsProfile": {
+                "bootDiagnostics": {
+                    "enabled": true,
+                    "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', toLower('ubuntuVM11Mehmetstorage'))).primaryEndpoints.blob]"
+                }
+            }
+        }
+    }
+  
+  ,
+  {
+    "name": "[toLower('winVM11Mehmetstorage')]",
+    "type": "Microsoft.Storage/storageAccounts",
+    "apiVersion": "2021-04-01",
+    "location": "[resourceGroup().location]",
+    "tags": {
+        "displayName": "winVM11Mehmet Storage Account"
+    },
+    "sku": {
+        "name": "Standard_LRS"
+    },
+    "kind": "Storage"
+  },
+  {
+    "name": "winVM11Mehmet-PublicIP",
+    "type": "Microsoft.Network/publicIPAddresses",
+    "apiVersion": "2020-11-01",
+    "location": "[resourceGroup().location]",
+    "tags": {
+        "displayName": "PublicIPAddress"
+    },
+    "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": {
+            "domainNameLabel": "[toLower('winVM11Mehmet')]"
+        }
+    }
+  },
+  {
+    "name": "winVM11Mehmet-nsg",
+    "type": "Microsoft.Network/networkSecurityGroups",
+    "apiVersion": "2020-11-01",
+    "location": "[resourceGroup().location]",
+    "properties": {
+        "securityRules": [
+            {
+                "name": "nsgRule1",
+                "properties": {
+                    "description": "description",
+                    "protocol": "Tcp",
+                    "sourcePortRange": "*",
+                    "destinationPortRange": "3389",
+                    "sourceAddressPrefix": "*",
+                    "destinationAddressPrefix": "*",
+                    "access": "Allow",
+                    "priority": 100,
+                    "direction": "Inbound"
+                }
+            }
+        ]
+    }
+  },
+  {
+    "name": "winVM11Mehmet-VirtualNetwork",
+    "type": "Microsoft.Network/virtualNetworks",
+    "apiVersion": "2020-11-01",
+    "location": "[resourceGroup().location]",
+    "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', 'winVM11Mehmet-nsg')]"
+    ],
+    "tags": {
+        "displayName": "winVM11Mehmet-VirtualNetwork"
+    },
+    "properties": {
+        "addressSpace": {
+            "addressPrefixes": [
+                "10.0.0.0/16"
+            ]
+        },
+        "subnets": [
+            {
+                "name": "winVM11Mehmet-VirtualNetwork-Subnet",
+                "properties": {
+                    "addressPrefix": "10.0.0.0/24",
+                    "networkSecurityGroup": {
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'winVM11Mehmet-nsg')]"
+                    }
+                }
+            }
+        ]
+    }
+  },
+  {
+    "name": "winVM11Mehmet-NetworkInterface",
+    "type": "Microsoft.Network/networkInterfaces",
+    "apiVersion": "2020-11-01",
+    "location": "[resourceGroup().location]",
+    "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', 'winVM11Mehmet-PublicIP')]",
+        "[resourceId('Microsoft.Network/virtualNetworks', 'winVM11Mehmet-VirtualNetwork')]"
+    ],
+    "tags": {
+        "displayName": "winVM11Mehmet Network Interface"
+    },
+    "properties": {
+        "ipConfigurations": [
+            {
+                "name": "ipConfig1",
+                "properties": {
+                    "privateIPAllocationMethod": "Dynamic",
+                    "publicIPAddress": {
+                        "id": "[resourceId('Microsoft.Network/publicIPAddresses', 'winVM11Mehmet-PublicIP')]"
+                    },
+                    "subnet": {
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'winVM11Mehmet-VirtualNetwork', 'winVM11Mehmet-VirtualNetwork-Subnet')]"
+                    }
+                }
+            }
+        ]
+    }
+  },
+  {
+    "name": "winVM11Mehmet",
+    "type": "Microsoft.Compute/virtualMachines",
+    "apiVersion": "2021-03-01",
+    "location": "[resourceGroup().location]",
+    "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', toLower('winVM11Mehmetstorage'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', 'winVM11Mehmet-NetworkInterface')]"
+    ],
+    "tags": {
+        "displayName": "winVM11Mehmet"
+    },
+    "properties": {
+        "hardwareProfile": {
+            "vmSize": "Standard_A2_v2"
+        },
+        "osProfile": {
+            "computerName": "winVM11Mehmet",
+            "adminUsername": "adminUsername",
+            "adminPassword": "24HXsU5b%h5@"
+        },
+        "storageProfile": {
+            "imageReference": {
+                "publisher": "MicrosoftwinServer",
+                "offer": "winServer",
+                "sku": "2012-R2-Datacenter",
+                "version": "latest"
+            },
+            "osDisk": {
+                "name": "winVM11MehmetOSDisk",
+                "caching": "ReadWrite",
+                "createOption": "FromImage"
+            }
+        },
+        "networkProfile": {
+            "networkInterfaces": [
+                {
+                    "id": "[resourceId('Microsoft.Network/networkInterfaces', 'winVM11Mehmet-NetworkInterface')]"
+                }
+            ]
+        },
+        "diagnosticsProfile": {
+            "bootDiagnostics": {
+                "enabled": true,
+                "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', toLower('winVM11Mehmetstorage'))).primaryEndpoints.blob]"
+            }
+        }
+    }
+  }
+  ]
+}
