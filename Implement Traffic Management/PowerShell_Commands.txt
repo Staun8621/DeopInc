@@ -1,0 +1,57 @@
+$location = 'eastus'
+$rgName = 'az104-06-rg1'
+New-AzResourceGroup -Name $rgName -Location $location
+
+New-AzResourceGroupDeployment `
+   -ResourceGroupName $rgName `
+   -TemplateFile $HOME/az104-06-vms-loop-template.json `
+   -TemplateParameterFile $HOME/az104-06-vms-loop-parameters.json
+
+
+
+
+$rgName = 'az104-06-rg1'
+$location = (Get-AzResourceGroup -ResourceGroupName $rgName).location
+$vmNames = (Get-AzVM -ResourceGroupName $rgName).Name
+
+foreach ($vmName in $vmNames) {
+  Set-AzVMExtension `
+  -ResourceGroupName $rgName `
+  -Location $location `
+  -VMName $vmName `
+  -Name 'networkWatcherAgent' `
+  -Publisher 'Microsoft.Azure.NetworkWatcher' `
+  -Type 'NetworkWatcherAgentWindows' `
+  -TypeHandlerVersion '1.4'
+}
+
+
+
+
+Set-AzVMExtension `
+  -ResourceGroupName "az104-06-rg1" `
+  -Location "eastus" `
+  -VMName "az104-06-vm3" `
+  -Name "networkWatcherAgent" `
+  -Publisher "Microsoft.Azure.NetworkWatcher" `
+  -Type "NetworkWatcherAgentWindows" `
+  -TypeHandlerVersion "1.4"
+
+
+Install-WindowsFeature RemoteAccess -IncludeManagementTools
+
+
+
+Install-WindowsFeature -Name Routing -IncludeManagementTools -IncludeAllSubFeature
+
+Install-WindowsFeature -Name "RSAT-RemoteAccess-Powershell"
+
+Install-RemoteAccess -VpnType RoutingOnly
+
+Get-NetAdapter | Set-NetIPInterface -Forwarding Enabled
+
+
+
+
+Invoke-AzVMRunCommand -ResourceGroupName 'az104-06-rg1' -Name 'az104-06-vm0' -CommandId 'RunPowerShellScript' -ScriptPath 'power.sh' 
+
