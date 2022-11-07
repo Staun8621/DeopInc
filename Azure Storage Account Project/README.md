@@ -8,8 +8,13 @@ Finally, we want to determine to what extent Azure Files service might be suitab
 Steps for this project
 
 1.Provision the lab environment
+
 2.Create and configure Azure storage accounts
+
 3.Manage blob storage
+
 4.Manage authentication and authorization for Azure Storage
+
 5.Create and configure an Azure Files shares
+
 6.Manage network access for Azure Storage
